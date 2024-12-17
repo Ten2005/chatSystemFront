@@ -8,7 +8,7 @@ export default function Chat() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
     const basicTalk = (messages: string[]) => {
-        fetch('http://127.0.0.1:8001/basic', {
+        fetch('https://chat-with-ais-64f0efed640e.herokuapp.com/basic', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export default function Chat() {
         const inclulding_user_messages = [...messages, input];
         setMessages(inclulding_user_messages);
         setInput("");
-        fetch('http://127.0.0.1:8001/adjusting', {
+        fetch('https://chat-with-ais-64f0efed640e.herokuapp.com/adjusting', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
