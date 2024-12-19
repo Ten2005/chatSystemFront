@@ -61,11 +61,19 @@ export default function Chat() {
         {messages.map((message, index) => (
             (message.content
                 ?
-            <div key={index} className={`flex max-w-[calc(100%-48px)] ${message.role !== 'user' ? 'justify-start ml-0 mr-auto' : 'justify-end ml-auto mr-0'} mt-5 shadow py-1 px-4 rounded-xl`}>
-            {message.role}: {message.content}
-            </div>
-            :
-            null
+                <div key={index} className={`flex w-full mt-6 ${message.role !== 'user' ? 'justify-start ml-0 mr-auto' : 'justify-end ml-auto mr-0'}`}>
+                    {message.role === 'user'
+                    ?
+                    null
+                    :
+                    <div className={`w-8 h-8 rounded-full bg-gray-200 mr-4 ${message.role === 'ai_basic' ? '' : 'border border-gray-400'}`}></div> 
+                    }
+                    <div key={index} className={`flex max-w-[calc(100%-48px)] justify-center shadow py-1 px-4 rounded-xl`}>
+                        {message.content}
+                    </div>
+                </div>
+                :
+                null
             )
         ))}
         </div>
