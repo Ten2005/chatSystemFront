@@ -90,7 +90,7 @@ export default function Chat() {
         }, 10000);
 
         return () => clearTimeout(timer);
-    }, [messages]);
+    }, [messages, model, isSubmitting, input]);
 
 
 
