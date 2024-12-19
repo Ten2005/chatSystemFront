@@ -158,7 +158,7 @@ export default function Chat() {
         </select>
         <button
         type="submit"
-        className="shadow ml-3 h-7 w-10 mt-5 rounded-lg leading-6"
+        className="shadow ml-3 h-7 w-10 w-10 mt-5 rounded-lg leading-6"
         disabled={isSubmitting}
         >
             {isSubmitting
