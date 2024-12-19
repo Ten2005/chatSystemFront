@@ -108,7 +108,7 @@ export default function Chat() {
     <div className="w-screen h-screen flex flex-col justify-center items-center">
     <h1 className="fixed top-2 left-0 w-full text-center font-serif">Chat system by art-innovation, 2024.</h1>
     <div className="fixed top-10 rounded-lg shadow w-4/5 max-w-screen-sm h-[calc(70vh)] p-4 overflow-y-auto mt-8">
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col w-full mb-24">
         {messages.map((message, index) => (
             (message.content
                 ?
