@@ -3,12 +3,15 @@
 import { useState } from 'react';
 
 export default function Chat() {
-    const [messages, setMessages] = useState<string[]>([]);
+    const [messages, setMessages] = useState<{ role: string, content: string }[]>([]);
     const [input, setInput] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    const basicTalk = (messages: string[]) => {
-        fetch('https://chat-with-ais-64f0efed640e.herokuapp.com/basic', {
+    const creatingReply = (messages: { role: string, content: string }[]) => {
+        const url = process.env.NODE_ENV === 'production' 
+            ? 'https://chat-with-ais-64f0efed640e.herokuapp.com' 
+            : 'http://localhost:8000';
+        fetch(url + '/reply_basic', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -17,9 +20,24 @@ export default function Chat() {
         })
         .then(response => response.json())
         .then(data => {
-            const inclulding_ai_2_messages = [...messages, data.reply_basic];
-            setMessages(inclulding_ai_2_messages);
-            setIsSubmitting(false);
+            const inclulding_ai_basic_messages = [...messages, data];
+            setMessages(inclulding_ai_basic_messages);
+            fetch(url + '/reply_adjusting', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ messages: inclulding_ai_basic_messages }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const inclulding_ai_adjusting_messages = [...inclulding_ai_basic_messages, data];
+                setMessages(inclulding_ai_adjusting_messages);
+                setIsSubmitting(false);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         })
         .catch(error => {
             console.error('Error:', error);
@@ -29,37 +47,22 @@ export default function Chat() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSubmitting(true);
-        const inclulding_user_messages = [...messages, input];
+        const inclulding_user_messages = [...messages, { role: 'user', content: input }];
         setMessages(inclulding_user_messages);
+        creatingReply(inclulding_user_messages);
         setInput("");
-        fetch('https://chat-with-ais-64f0efed640e.herokuapp.com/adjusting', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ messages: inclulding_user_messages }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            const inclulding_ai_1_messages = [...inclulding_user_messages, data.reply_adjusting];
-            setMessages(inclulding_ai_1_messages);
-            basicTalk(inclulding_ai_1_messages);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    };
+    }
 
   return (
-    <>
+    <div className="w-screen h-screen flex flex-col justify-center items-center">
     <h1 className="fixed top-2 left-0 w-full text-center font-serif">Chat system by art-innovation, 2024.</h1>
-    <div className="fixed top-10 rounded-lg shadow w-4/5 max-w-screen-sm h-[calc(80vh)] p-4 overflow-y-auto">
+    <div className="fixed top-10 rounded-lg shadow w-4/5 max-w-screen-sm h-[calc(70vh)] p-4 overflow-y-auto mt-8">
         <div className="flex flex-col w-full">
         {messages.map((message, index) => (
-            (message
+            (message.content
                 ?
-            <div key={index} className={`flex max-w-[calc(100%-48px)] ${index % 3 !== 0 ? 'justify-start ml-0 mr-auto' : 'justify-end ml-auto mr-0'} mt-5 shadow py-1 px-4 rounded-xl`}>
-            {message}
+            <div key={index} className={`flex max-w-[calc(100%-48px)] ${message.role !== 'user' ? 'justify-start ml-0 mr-auto' : 'justify-end ml-auto mr-0'} mt-5 shadow py-1 px-4 rounded-xl`}>
+            {message.role}: {message.content}
             </div>
             :
             null
@@ -70,9 +73,15 @@ export default function Chat() {
     <div className="fixed bottom-6 w-full max-w-screen-sm px-8 flex justify-between mt-8">
       <form
       className="flex justify-end w-full h-12"
-      onSubmit={handleSubmit}>
+      onSubmit={(e) => {
+        if (input.trim() !== "") {
+          handleSubmit(e);
+        } else {
+          e.preventDefault();
+        }
+      }}>
         <input
-        className="flex-grow shadow py-1 px-2"
+        className="flex-grow shadow w-full rounded-lg py-1 px-2"
         placeholder="Enter your message here..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
@@ -93,6 +102,6 @@ export default function Chat() {
         </button>
         </form>
     </div>
-    </>
+    </div>
   )
 }
