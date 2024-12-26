@@ -7,43 +7,7 @@ export default function Chat() {
     const [input, setInput] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [model, setModel] = useState<string>("absurd");
-
-    // const creatingReply = (messages: { role: string, content: string }[]) => {
-    //     const url = process.env.NODE_ENV === 'production' 
-    //         ? 'https://chat-with-ais-64f0efed640e.herokuapp.com' 
-    //         : 'http://localhost:8000';
-    //     fetch(url + '/reply_basic', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify({ messages: messages }),
-    //     })
-    //     .then(response => response.json())
-    //     .then(data => {
-    //         const inclulding_ai_basic_messages = [...messages, data];
-    //         setMessages(inclulding_ai_basic_messages);
-    //         fetch(url + '/reply_adjusting', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify({ messages: inclulding_ai_basic_messages }),
-    //         })
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             const inclulding_ai_adjusting_messages = [...inclulding_ai_basic_messages, data];
-    //             setMessages(inclulding_ai_adjusting_messages);
-    //             setIsSubmitting(false);
-    //         })
-    //         .catch(error => {
-    //             console.error('Error:', error);
-    //         });
-    //     })
-    //     .catch(error => {
-    //         console.error('Error:', error);
-    //     });
-    // }
+    const [isEnd, setIsEnd] = useState<boolean>(false);
 
     const reactToUser = (messages: { role: string, content: string }[], model: string) => {
         const url = process.env.NODE_ENV === 'production' 
@@ -67,30 +31,19 @@ export default function Chat() {
         });
     }
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (!isSubmitting && messages.length > 0) {
+        if (!isSubmitting && messages.length > 0 && !isEnd) {
+            const timer = setTimeout(() => {
                 setIsSubmitting(true);
                 setInput("");
-                let selectedModel;
-                if (model === 'absurd') {
-                    selectedModel = 'zen';
-                    setModel('zen');
-                } else if (model === 'zen') {
-                    selectedModel = 'consultation';
-                    setModel('consultation');
-                } else if (model === 'consultation') {
-                    selectedModel = 'absurd';
-                    setModel('absurd');
-                } else {
-                    selectedModel = 'absurd';
-                    setModel('absurd');
-                }
+                const modelSequence = ['absurd', 'zen', 'consultation'];
+                const nextModelIndex = (modelSequence.indexOf(model) + 1) % modelSequence.length;
+                const selectedModel = modelSequence[nextModelIndex];
+                setModel(selectedModel);
                 reactToUser(messages, selectedModel);
-            }
-        }, 10000);
-
-        return () => clearTimeout(timer);
-    }, [messages, model, isSubmitting, input]);
+            }, 8000);
+            return () => clearTimeout(timer);
+        }
+    }, [messages, model, isSubmitting, input, isEnd]);
 
 
 
@@ -99,14 +52,25 @@ export default function Chat() {
         setIsSubmitting(true);
         const inclulding_user_messages = [...messages, { role: 'user', content: input }];
         setMessages(inclulding_user_messages);
-        // creatingReply(inclulding_user_messages);
-        reactToUser(inclulding_user_messages, model);
+        reactToUser(inclulding_user_messages, 'consultation');
         setInput("");
+    }
+
+    const handleEnd = () => {
+        setIsEnd(true);
     }
 
   return (
     <div className="w-screen h-screen flex flex-col justify-center items-center">
-    <h1 className="fixed top-2 left-0 w-full text-center font-serif">Chat system by art-innovation, 2024.</h1>
+        <div className="fixed top-4 left-0 w-full flex justify-center items-center text-center font-serif">
+            <h1>Chat system by art-innovation, 2024.</h1>
+            <button
+            className={`shadow ml-4 h-8 w-24 rounded-xl leading-6 text-center ${isEnd ? 'bg-gray-300' : ''}`}
+            onClick={handleEnd}
+            >
+                終了
+            </button>
+        </div>
     <div className="fixed top-10 rounded-lg shadow w-4/5 max-w-screen-sm h-[calc(70vh)] p-4 overflow-y-auto mt-8">
         <div className="flex flex-col w-full mb-24">
         {messages.map((message, index) => (
@@ -144,22 +108,12 @@ export default function Chat() {
         placeholder="Enter your message here..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        disabled={isEnd}
         ></input>
-        <select
-        name="model"
-        id="model"
-        value={model}
-        onChange={(e) => setModel(e.target.value)}
-        className="shadow ml-4 h-8 w-24 mt-4 rounded-xl leading-6 text-center"
-        >
-            <option value="absurd">不条理</option>
-            <option value="zen">禅</option>
-            <option value="consultation">相談</option>
-        </select>
         <button
         type="submit"
         className="shadow ml-3 h-7 w-10 w-10 mt-5 rounded-lg leading-6"
-        disabled={isSubmitting}
+        disabled={isSubmitting || isEnd}
         >
             {isSubmitting
             ?
