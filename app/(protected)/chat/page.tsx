@@ -13,14 +13,22 @@ export default function Chat() {
         const url = process.env.NODE_ENV === 'production' 
             ? 'https://chat-with-ais-64f0efed640e.herokuapp.com' 
             : 'http://localhost:8000';
+        
         fetch(url + '/react_to_user', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify({ messages: messages, model: model }),
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             const inclulding_ai_messages = [...messages, data];
             setMessages(inclulding_ai_messages);
@@ -28,6 +36,11 @@ export default function Chat() {
         })
         .catch(error => {
             console.error('Error:', error);
+            setIsSubmitting(false);
+            setMessages([...messages, { 
+                role: 'system', 
+                content: 'Sorry, there was an error processing your message. Please try again.' 
+            }]);
         });
     }
     useEffect(() => {
