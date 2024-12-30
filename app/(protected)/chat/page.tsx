@@ -19,7 +19,11 @@ export default function Chat() {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'Origin': process.env.NODE_ENV === 'production' 
+                    ? 'https://chat-with-ais.vercel.app'
+                    : 'http://localhost:3000'
             },
+            mode: 'cors',
             credentials: 'include',
             body: JSON.stringify({ messages: messages, model: model }),
         })
